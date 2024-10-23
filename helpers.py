@@ -50,30 +50,12 @@ def track_subdomain(url):
 
     # Removes "www." if it exists 
     if subdomain.startswith("www."):
-        netloc = netloc[4:]
+        subdomain = subdomain[4:]
 
-    # Checks if the url belongs to the allowed subdomains
-    allowed_subdomains = [
-        "ics.uci.edu",
-        "cs.uci.edu",
-        "informatics.uci.edu",
-        "stat.uci.edu",
-    ]
-
-    if subdomain.endswith("today.uci.edu"):
-        # Checks only urls with the specific path for today.uci.edu
-        if parsed_url.path.startswith("/department/information_computer_sciences/"):
-            if subdomain not in subdomains:
-                subdomains[subdomain] = 0
-            subdomains[subdomain] += 1
-    else:
-        # For other domains, checks if they belong to allowed subdomains
-        for domain in allowed_subdomains:
-            if subdomain.endswith(domain):
-                if subdomain not in subdomains:
-                    subdomains[subdomain] = 0
-                subdomains[subdomain] += 1
-                break
+    # Tracks subdomain frequency
+    if subdomain not in subdomains:
+        subdomains[subdomain] = 0
+    subdomains[subdomain] += 1
 
 def record_data(content, url):
     # Extracts text from resp.raw_response.content
@@ -85,6 +67,28 @@ def record_data(content, url):
     update_word_frequency(text, url)
     count_words_in_page(text, url)
     track_subdomain(url)
+
+def is_valid_domain(url):  
+    allowed_domains = [
+        "ics.uci.edu",
+        "cs.uci.edu",
+        "informatics.uci.edu",
+        "stat.uci.edu",
+        "today.uci.edu"
+    ]
+    parsed_url = urlparse(url)
+    subdomain = parsed_url.netloc
+
+    # Checks if the domain of the url is one we are supposed to crawl
+    if subdomain.endswith("today.uci.edu"):
+        if not parsed_url.path.startswith("/department/information_computer_sciences/"):
+            return False
+    if any(subdomain.endswith(domain) for domain in allowed_domains):
+        return True
+    
+    return False
+        
+
 
 # Function to load stop words from a text file
 def load_stop_words(path, words):
