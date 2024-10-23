@@ -1,4 +1,5 @@
-import tokenizer
+from tokenizer import *
+from bs4 import BeautifulSoup
 
 word_frequency = {}
 stop_words = set()
