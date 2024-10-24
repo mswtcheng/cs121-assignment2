@@ -1,5 +1,9 @@
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
+from helpers import *
+
+
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -15,14 +19,77 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+    
+
+
+#Checks if content has headers and then if the content is actually text/html, and not pdf, etc.
+    if(resp.raw_response and hasattr(resp.raw_response, 'headers')):
+        ConType = resp.raw_response.headers.get("Content-Type")
+        if ("text/html" not in ConType):
+            print(f"bad type: {ConType}")
+            print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status}; and Type: {ConType}")
+            return []
+    else:
+        print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status};")
+
+        return []
+
+    
+#This is the actual extraction of URLs
+    URList = []  #This holds all the valid URLs to be returned
+
+    if (resp.status == 200):
+        #This is when we get a valid page to parse and analize
+
+        content = resp.raw_response.content
+        
+        try:
+            decoded_content = content.decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(decoded_content, "lxml") #This parses our HTML content and enables useful methods like below
+            text = soup.find_all('a')  #Finds all anchors<a> in soup, which typically holds urls. Returns a List of Soup objects, each represent something in the content, hopefully a URL. . . 
+            
+            for urls in text: 
+
+                if (is_valid(urls.get("href"))):  #call is_Valid on every URL by getting the URL directly from the soup object
+                    URList.append(urls.get("href")) #If it is valid, add it to URList
+
+        except Exception as msg:
+            print(f"Something happened: {msg}") 
+            
+            
+    
+        #I was just curious how many urls per url
+        # print(f"Number of links: {len(text)}")
+        # print(f"Number of valid links: {len(URList)}")
+            
+
+       
+
+    else:
+        print(f"This is not a valid page: {url}; Gave Code: {resp.status}; Gave Error: {resp.error}") #bugfixing
+
+    return URList
+
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
+    
+    if url is None:     #First off, it cant be None, which is possible for some reason.
+        print("URL is None")
+        return False 
+    
+    
+    if (not is_valid_domain(url)): #call helper which filters for required UCI websites
+        return False
+    
+    
+    
     try:
         parsed = urlparse(url)
+
+
         if parsed.scheme not in set(["http", "https"]):
             return False
         return not re.match(
