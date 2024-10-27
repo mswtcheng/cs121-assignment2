@@ -1,6 +1,7 @@
 from tokenizer import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urldefrag
+import datetime
 import re
 
 unique_urls = set()
@@ -9,6 +10,21 @@ longest_page_url = None
 max_word_count = 0
 subdomains = {}
 stop_words = set()
+
+def log_stats(): #This is not complete, simply prints stats for now, intend to make it write to file, also need to figure when to call this, every hour, every sec, etc??
+    print(f'Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    
+    print(f"Unique Urls Amount: {len(unique_urls)}")
+    
+    print(f"Longest Page: {longest_page_url}")
+    
+    print("50 Most Common Words")
+    for key, value in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:50]:  #Prints top 50 words in terms of frequency
+        print(f"{key}: {value}")
+    
+    print("Subdomains")
+    for key in sorted(subdomains):   #Prints subdomains in alphabetical order
+        print(f"{key}, {subdomains[key]}")
 
 # Data recording helper functions
 
@@ -21,6 +37,10 @@ def add_unique_url(url):
     # If the url has not been seen, add it to unique_urls
     if(defrag_url not in unique_urls):
         unique_urls.add(defrag_url)
+        return True  
+    else:
+        return False    
+    
 
 def update_word_frequency(text, content):
     global word_frequency
@@ -65,7 +85,7 @@ def record_data(content, url):
     text = soup.get_text()
 
     # Records data from given url and page text
-    add_unique_url(url)
+    # add_unique_url(url)
     update_word_frequency(text, url)
     count_words_in_page(text, url)
     track_subdomain(url)

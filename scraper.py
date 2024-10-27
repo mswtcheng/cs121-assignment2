@@ -42,6 +42,8 @@ def extract_next_links(url, resp):
         #This is when we get a valid page to parse and analize
 
         content = resp.raw_response.content
+
+        record_data(content, url) #updates our final report stats
         
         try:
             decoded_content = content.decode('utf-8', errors='ignore')
@@ -51,7 +53,8 @@ def extract_next_links(url, resp):
             for urls in text: 
 
                 if (is_valid(urls.get("href"))):  #call is_Valid on every URL by getting the URL directly from the soup object
-                    URList.append(urls.get("href")) #If it is valid, add it to URList
+                    if(add_unique_url(urls.get("href"))):  #Checks if unqiue URL
+                        URList.append(urls.get("href")) #If it is valid, add it to URList
 
         except Exception as msg:
             print(f"Something happened: {msg}") 
@@ -77,7 +80,7 @@ def is_valid(url):
     # There are already some conditions that return False.
     
     if url is None:     #First off, it cant be None, which is possible for some reason.
-        print("URL is None")
+        # print("URL is None")
         return False 
     
     
