@@ -2,7 +2,7 @@ from tokenizer import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urldefrag
 import datetime
-
+import re
 
 unique_urls = set()
 word_frequency = {}
@@ -26,6 +26,7 @@ def log_stats(): #This is not complete, simply prints stats for now, intend to m
     for key in sorted(subdomains):   #Prints subdomains in alphabetical order
         print(f"{key}, {subdomains[key]}")
 
+# Data recording helper functions
 
 def add_unique_url(url):
     global unique_urls
@@ -89,6 +90,9 @@ def record_data(content, url):
     count_words_in_page(text, url)
     track_subdomain(url)
 
+
+# is_valid helper functions
+
 def is_valid_domain(url):  
     allowed_domains = [
         "ics.uci.edu",
@@ -108,7 +112,26 @@ def is_valid_domain(url):
         return True
     
     return False
-        
+
+def is_new_url(url):
+    global unique_urls
+
+    # Removes fragment from url
+    defrag_url, frag = urldefrag(url)
+
+    if(defrag_url in unique_urls):
+        return False
+    else
+        return True
+
+def is_infinite_trap(url):
+    # Detect URLs with the page pattern  like \page=1, \page=2, etc.
+    has_page_pattern = re.search(r'[\?&]page=\d+', url)
+    
+    if has_page_pattern:
+        return True
+    return False
+
 
 
 # Function to load stop words from a text file

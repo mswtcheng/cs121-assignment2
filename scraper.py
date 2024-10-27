@@ -87,7 +87,11 @@ def is_valid(url):
     if (not is_valid_domain(url)): #call helper which filters for required UCI websites
         return False
     
-    
+    if (not is_new_url(url)):
+        return False
+
+    if (is_infinite_trap(url)):
+        return False
     
     try:
         parsed = urlparse(url)
