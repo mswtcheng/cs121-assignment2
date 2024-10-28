@@ -13,19 +13,25 @@ stop_words = set()
 url_count_map = {}
 
 def log_stats(): #This is not complete, simply prints stats for now, intend to make it write to file, also need to figure when to call this, every hour, every sec, etc??
-    print(f'Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
-    
-    print(f"Unique Urls Amount: {len(unique_urls)}")
-    
-    print(f"Longest Page: {longest_page_url}")
-    
-    print("50 Most Common Words")
-    for key, value in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:50]:  #Prints top 50 words in terms of frequency
-        print(f"{key}: {value}")
-    
-    print("Subdomains")
-    for key in sorted(subdomains):   #Prints subdomains in alphabetical order
-        print(f"{key}, {subdomains[key]}")
+    with open("Logged_Stats.txt", 'a') as file:
+
+        file.write(f'Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n\n')
+        
+        file.write(f"Unique Urls Amount: {len(unique_urls)}\n\n")
+        
+        file.write(f"Longest Page: {longest_page_url}\n\n")
+        
+        file.write("50 Most Common Words:\n")
+        for key, value in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:50]:  #Prints top 50 words in terms of frequency
+            file.write(f"{key}: {value}\n")
+        
+        file.write("\n")
+
+        file.write("Subdomains:\n")
+        for key in sorted(subdomains):   #Prints subdomains in alphabetical order
+            file.write(f"{key}, {subdomains[key]}\n")
+
+        file.write("\n" + "="*40 + "\n\n")
 
 # Data recording helper functions
 
@@ -48,7 +54,7 @@ def update_word_frequency(text, content):
 
     # Tokenizes the words and adds them to the valid_words list if it is not in stop_words
     words = tokenize(text) 
-    valid_words = [word for word in words if word not in stop_words]
+    valid_words = [word for word in words if word not in stop_words and len(word) > 1]
     
     # Records words to the overall word frequency dictionary
     word_frequency = compute_frequencies(valid_words, word_frequency)
@@ -85,6 +91,12 @@ def record_data(content, url):
     soup = BeautifulSoup(content, "lxml")
     text = soup.get_text()
 
+
+    if(len(unique_urls)%100 ==0):  #this logs stats every time number of unqiue values is 
+        print(len(unique_urls))
+        log_stats()
+
+
     # Records data from given url and page text
     # add_unique_url(url)
     update_word_frequency(text, url)
@@ -114,16 +126,6 @@ def is_valid_domain(url):
     
     return False
 
-def is_new_url(url):
-    global unique_urls
-
-    # Removes fragment from url
-    defrag_url, frag = urldefrag(url)
-
-    if(defrag_url in unique_urls):
-        return False
-    else
-        return True
 
 def is_infinite_trap(url):
     # Detect URLs with the page pattern  like \page=1, \page=2, etc.
