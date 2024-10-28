@@ -1,7 +1,7 @@
 from tokenizer import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urldefrag
-import datetime
+from datetime import datetime, timedelta
 import re
 
 unique_urls = set()
@@ -11,6 +11,7 @@ max_word_count = 0
 subdomains = {}
 stop_words = set()
 url_count_map = {}
+calendarDates = []
 
 EnableCountPrints = True #TURN TRUE IF YOU WANT TO SEE BUGFIXING PRINTS, THERES ANOTHER ONE YOU NEED TO BE TRUE FOR SCRAPER
 
@@ -18,7 +19,7 @@ EnableCountPrints = True #TURN TRUE IF YOU WANT TO SEE BUGFIXING PRINTS, THERES 
 def log_stats(): #This is not complete, simply prints stats for now, intend to make it write to file, also need to figure when to call this, every hour, every sec, etc??
     with open("Logged_Stats.txt", 'a') as file:
 
-        file.write(f'Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n\n')
+        file.write(f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n\n')
         
         file.write(f"Unique Urls Amount: {len(unique_urls)}\n\n")
         
@@ -134,12 +135,41 @@ def is_valid_domain(url):
 
 def is_infinite_trap(url):
     # Detect URLs with the page pattern  like \page=1, \page=2, etc.
-    #has_page_pattern = re.search(r'[\?&]page=\d+', url)
-    has_page_pattern = re.search(r'page', url)
+    has_page_pattern = re.search(r'[\?&]page=\d+', url)
+    #has_page_pattern = re.search(r'page', url)
     
     if has_page_pattern:
         return True
     return False
+
+def check_calendar_trap(url):
+    # check if "eventDate=" is in URL (common search pattern)
+    if "eventDate=" in url:
+        # get the substring following "eventDate="
+        date_str = url.split("eventDate=")[-1][:10]
+        try:
+            # validate date format
+            event_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            # add unique dates to calendarDates
+            if event_date not in calendarDates:
+                calendarDates.append(event_date)
+            
+            # Check if a calendar trap is detected by finding sequential dates
+            if len(calendarDates) >= 15 and check_for_sequential_dates(calendarDates):
+                return True  # Indicate a calendar trap detected
+        except ValueError:
+            # If the date format is incorrect, pass
+            pass
+    return False  # No trap detected
+
+def check_for_sequential_dates(dates):
+    # Sort dates and check for consecutive daily differences
+    sorted_dates = sorted(dates)
+    for i in range(1, len(sorted_dates)):
+        if (sorted_dates[i] - sorted_dates[i - 1]).days != 1:
+            return False  # dates are not in sequential daily order
+    return True  # all dates are sequential
+
 
 def has_high_text_content(content):
     # Extracts text from the page and counts the words
