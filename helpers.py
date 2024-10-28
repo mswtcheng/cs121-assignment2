@@ -12,6 +12,9 @@ subdomains = {}
 stop_words = set()
 url_count_map = {}
 
+EnableCountPrints = True #TURN TRUE IF YOU WANT TO SEE BUGFIXING PRINTS, THERES ANOTHER ONE YOU NEED TO BE TRUE FOR SCRAPER
+
+
 def log_stats(): #This is not complete, simply prints stats for now, intend to make it write to file, also need to figure when to call this, every hour, every sec, etc??
     with open("Logged_Stats.txt", 'a') as file:
 
@@ -93,7 +96,9 @@ def record_data(content, url):
 
 
     if(len(unique_urls)%100 ==0):  #this logs stats every time number of unqiue values is 
-        print(len(unique_urls))
+        if (EnableCountPrints): #TURN TRUE AT THE TOP IF YOU WANT TO SEE BUGFIXING PRINTS
+            print(len(unique_urls))
+
         log_stats()
 
 
@@ -121,7 +126,7 @@ def is_valid_domain(url):
     if subdomain.endswith("today.uci.edu"):
         if not parsed_url.path.startswith("/department/information_computer_sciences/"):
             return False
-    if any(subdomain.endswith(domain) for domain in allowed_domains):
+    if any(subdomain == domain or subdomain.endswith("." + domain) for domain in allowed_domains):
         return True
     
     return False
@@ -138,19 +143,32 @@ def is_infinite_trap(url):
 
 def has_high_text_content(content):
     # Extracts text from the page and counts the words
-    text = BeautifulSoup(content, "lxml")
+    soup = BeautifulSoup(content, "lxml")
+    text = soup.get_text()
     word_count = len(text.split())
     
     # Calculates text-HTML ratio of the page
     text_length = len(text)
-    html_length = len(html_content)
-    if html_length > 0 
+    html_length = len(content)
+
+    if (text_length == 0 or html_length == 0):
+        return False
+    
+    if (EnableCountPrints): #TURN TRUE AT THE TOP IF YOU WANT TO SEE BUGFIXING PRINTS
+        print(f"ratio: {text_length / html_length}")
+        print(f"text: {text_length}")
+        print(f"html: {html_length}")
+        print(f"word count: {word_count}")
+        links = soup.find_all('a')  #Finds all anchors<a> in soup, which typically holds urls. Returns a List of Soup objects, each represent something in the content, hopefully a URL. . .                    
+        print(f"Number of URLS: {len(links)}")
+
+    if html_length > 0:
         text_ratio = text_length / html_length 
-    else
+    else:
         return False
     
     # Determines if page meets high-content criteria
-    if word_count >= 100 and text_ratio >= 0.05:
+    if (word_count >= 100 or text_ratio >= 0.08) and (text_ratio < 0.8) and (word_count > 40):
         return True
     return False
 
