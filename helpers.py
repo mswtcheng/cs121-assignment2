@@ -10,6 +10,7 @@ longest_page_url = None
 max_word_count = 0
 subdomains = {}
 stop_words = set()
+url_count_map = {}
 
 def log_stats(): #This is not complete, simply prints stats for now, intend to make it write to file, also need to figure when to call this, every hour, every sec, etc??
     print(f'Time: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
@@ -126,13 +127,30 @@ def is_new_url(url):
 
 def is_infinite_trap(url):
     # Detect URLs with the page pattern  like \page=1, \page=2, etc.
-    has_page_pattern = re.search(r'[\?&]page=\d+', url)
+    #has_page_pattern = re.search(r'[\?&]page=\d+', url)
+    has_page_pattern = re.search(r'page', url)
     
     if has_page_pattern:
         return True
     return False
 
-
+def has_high_text_content(content):
+    # Extracts text from the page and counts the words
+    text = BeautifulSoup(content, "lxml")
+    word_count = len(text.split())
+    
+    # Calculates text-HTML ratio of the page
+    text_length = len(text)
+    html_length = len(html_content)
+    if html_length > 0 
+        text_ratio = text_length / html_length 
+    else
+        return False
+    
+    # Determines if page meets high-content criteria
+    if word_count >= 100 and text_ratio >= 0.05:
+        return True
+    return False
 
 # Function to load stop words from a text file
 def load_stop_words(path, words):
