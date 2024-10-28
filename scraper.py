@@ -48,7 +48,7 @@ def extract_next_links(url, resp):
         try:
             decoded_content = content.decode('utf-8', errors='ignore')
             soup = BeautifulSoup(decoded_content, "lxml") #This parses our HTML content and enables useful methods like below
-            text = soup.find_all('a')  #Finds all anchors<a> in soup, which typically holds urls. Returns a List of Soup objects, each represent something in the content, hopefully a URL. . . 
+            text = soup.find_all('a')  #Finds all anchors<a> in soup, which typically holds urls. Returns a List of Soup objects, each represent something in the content, hopefully a URL. . .                    
             
             for urls in text: 
 
@@ -87,8 +87,6 @@ def is_valid(url):
     if (not is_valid_domain(url)): #call helper which filters for required UCI websites
         return False
     
-    if (not is_new_url(url)):
-        return False
 
     if (is_infinite_trap(url)):
         return False
@@ -107,7 +105,7 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower() + parsed.query.lower())
 
     except TypeError:
         print ("TypeError for ", parsed)
