@@ -34,6 +34,10 @@ def extract_next_links(url, resp):
 
         return []
 
+    if(not has_high_text_content(resp.raw_response)):
+        print("Low textual content.")
+        return []
+
     
 #This is the actual extraction of URLs
     URList = []  #This holds all the valid URLs to be returned
