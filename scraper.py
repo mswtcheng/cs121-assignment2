@@ -26,17 +26,20 @@ def extract_next_links(url, resp):
     if(resp.raw_response and hasattr(resp.raw_response, 'headers')):
         ConType = resp.raw_response.headers.get("Content-Type")
         if ("text/html" not in ConType):
-            print(f"bad type: {ConType}")
-            print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status}; and Type: {ConType}")
+            
+            if (EnableCountPrints): #TURN TRUE AT THE TOP OF HELPERS.py IF YOU WANT TO SEE BUGFIXING PRINTS
+                print(f"bad type: {ConType}")
+                print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status}; and Type: {ConType}")
             return []
     else:
-        print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status};")
+        if (EnableCountPrints): #TURN TRUE AT THE TOP OF HELPERS.py IF YOU WANT TO SEE BUGFIXING PRINTS
+            print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status};")
 
         return []
 
-    if(not has_high_text_content(resp.raw_response)):
-        print("Low textual content.")
-        return []
+    # if(not has_high_text_content(resp.raw_response)):
+    #     print("Low textual content.")
+    #     return []
 
     
 #This is the actual extraction of URLs
@@ -46,6 +49,12 @@ def extract_next_links(url, resp):
         #This is when we get a valid page to parse and analize
 
         content = resp.raw_response.content
+
+        if(not has_high_text_content(content)):
+            if (EnableCountPrints): #TURN TRUE AT THE TOP OF HELPERS.py IF YOU WANT TO SEE BUGFIXING PRINTS
+                print("Low textual content.")
+
+            return []
 
         record_data(content, url) #updates our final report stats
         
