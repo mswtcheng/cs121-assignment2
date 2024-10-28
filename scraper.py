@@ -103,6 +103,9 @@ def is_valid(url):
 
     if (is_infinite_trap(url)):
         return False
+
+    if (check_calendar_trap(url)):
+        return False
     
     try:
         parsed = urlparse(url)
