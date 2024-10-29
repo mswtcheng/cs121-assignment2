@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 from bs4 import BeautifulSoup
 from helpers import *
 
@@ -23,20 +23,22 @@ def extract_next_links(url, resp):
 
 
 #Checks if content has headers and then if the content is actually text/html, and not pdf, etc.
-    if(resp.raw_response and hasattr(resp.raw_response, 'headers')):
-        ConType = resp.raw_response.headers.get("Content-Type")
-        if ("text/html" not in ConType):
-            
+    try:
+        if(resp.raw_response and hasattr(resp.raw_response, 'headers')):
+            ConType = resp.raw_response.headers.get("Content-Type")
+            if (ConType and "text/html" not in ConType):
+                
+                if (EnableCountPrints): #TURN TRUE AT THE TOP OF HELPERS.py IF YOU WANT TO SEE BUGFIXING PRINTS
+                    print(f"bad type: {ConType}")
+                    print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status}; and Type: {ConType}")
+                return []
+        else:
             if (EnableCountPrints): #TURN TRUE AT THE TOP OF HELPERS.py IF YOU WANT TO SEE BUGFIXING PRINTS
-                print(f"bad type: {ConType}")
-                print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status}; and Type: {ConType}")
+                print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status};")
+
             return []
-    else:
-        if (EnableCountPrints): #TURN TRUE AT THE TOP OF HELPERS.py IF YOU WANT TO SEE BUGFIXING PRINTS
-            print(f"Missing Header: {hasattr(resp.raw_response, 'headers')}; and Raw Response: {resp.raw_response}; and Code: {resp.status};")
-
+    except:
         return []
-
     # if(not has_high_text_content(resp.raw_response)):
     #     print("Low textual content.")
     #     return []
@@ -91,7 +93,11 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
-    
+    try:
+        url = unquote(url)
+    except:
+        return False
+
     if url is None:     #First off, it cant be None, which is possible for some reason.
         # print("URL is None")
         return False 
@@ -100,6 +106,11 @@ def is_valid(url):
     if (not is_valid_domain(url)): #call helper which filters for required UCI websites
         return False
     
+    if(is_Filter(url)):
+        return False
+    
+    if (is_iCalendar(url)):
+        return False
 
     if (is_infinite_trap(url)):
         return False
