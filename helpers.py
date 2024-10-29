@@ -127,8 +127,8 @@ def record_data(content, url):
     if current_time - last_log_time >= timedelta(seconds=300): #log every 5 min
         log_stats()
         if (EnableCountPrints): #TURN TRUE AT THE TOP IF YOU WANT TO SEE BUGFIXING PRINTS
-                print(len(unique_urls))
-                print("_____________LOGGED STATS_____________")
+            print(len(unique_urls))
+            print("_____________LOGGED STATS_____________")
         last_log_time = current_time  # Update the last save time
 
 
