@@ -97,6 +97,7 @@ def track_subdomain(url):
 
 def record_data(content, url):
     global last_save_time
+    global last_log_time
     # Extracts text from resp.raw_response.content
     soup = BeautifulSoup(content, "lxml")
     text = soup.get_text()
